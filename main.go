@@ -2,44 +2,38 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 )
 
 func init() {}
 
 func main() {
-	json1 := loadFile("data/1.json")
-	json2 := loadFile("data/2.json")
 
-	fmt.Println(equal(json1, json2))
-}
+	var d, f Data
+	if e := d.LoadRaw("data/1.json"); e != nil {
+		errorHandler(e)
+	}
+	if e := f.LoadRaw("data/2.json"); e != nil {
+		errorHandler(e)
+	}
 
-func loadFile(path string) []byte {
-	json, e := os.Open(path)
-	errorHandler(e)
-	defer json.Close()
+	if e := d.Unmarshal(); e != nil {
+		errorHandler(e)
+	}
+	if e := f.Unmarshal(); e != nil {
+		errorHandler(e)
+	}
 
-	bv, e := ioutil.ReadAll(json)
-	errorHandler(e)
+	r, e := d.Compare(&f)
+	if e != nil {
+		errorHandler(e)
+	}
 
-	return bv
+	fmt.Println(r)
+	d.Diff(&f)
 }
 
 func errorHandler(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func equal(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
 }
